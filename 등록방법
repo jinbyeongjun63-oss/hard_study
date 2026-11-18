@@ -1,0 +1,13 @@
+#업뎃한 코드 깃헙에 업데이트.
+git add .
+git commit -m "Day 2: Python 공부"
+git push
+
+
+새로운 repository 만든 후 코드 업데이트 등록할 때.
+1. VS Code에서 ⌘ + Shift + P 누르기
+
+2. Git: Clone 검색 후 선택
+
+3. 새로 만든 저장소의 저장소이름 입력
+https://github.com/jinbyeongjun63-oss/backend-study.git
