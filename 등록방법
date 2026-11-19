@@ -1,6 +1,6 @@
 #업뎃한 코드 깃헙에 업데이트.
 git add .
-git commit -m "Day 2: Python 공부"
+git commit -m "Day 3: Python 공부"
 git push
 
 
