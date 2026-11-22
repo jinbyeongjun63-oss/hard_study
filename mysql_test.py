@@ -22,7 +22,11 @@ sql2 = "delete from students where name=%s"
 # 4. SQL 실행 (직접 작성!) // mysql에 점수 수정 명령을 보낸 것.
 # cursor.execute(sql,(100,"민수"))
 # cursor.execute(sql1,("대만",99))
-cursor.execute(sql2,("지수",))
+# cursor.execute(sql2,("지수",))
+#쉼표가 있는 이유: 파이선에서 원소가 하나인 튜플을 만들려면 쉼표가 필요.
+
+
+
 # 5. 변경사항 확정 (직접 작성!)
 conn.commit()
 
