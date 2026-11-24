@@ -1,0 +1,40 @@
+쿼리 매개변수
+url에 검색조건을 넣어서 조회하게 만드는 것.
+ex) /students?min_score > 90
+물음표 뒤에 있는 문장이 쿼리 매개변수임.
+
+fastAPI는 python함수가 반환한 딕셔너리 ex) return{"name":"민수","score":100}
+를 json으로 변환하고(파이선과 유사한 형태가 꽤 있음)
+http응답을 통해 클라이언트에 전달한다.
+
+
+json 객체는 기본적으로 다음 구조를 사용
+{
+    "key":"value"
+}
+근데 파이선과 다른 점들
+True -> true 
+False -> false 
+None -> null
+dict -> 객체 {}
+list -> 배열[]
+
+
+
+# python에서 class중 상속이란 의미는?
+# 이미 만들어진 클래스의 기능을 다른 클래스가 물려받아 사용하는 것.
+
+from pydantic import BaseModel
+class StudentCreate(BaseModel): ()안에는 부모가 될 클래스가 들어감.
+    name: str 
+    score: int 
+
+studentcreate라는 클래스는 BaseModel의 클래스를 상속받음.
+따라서 BaseModel을 사용할 수 잇음
+BaseModel은 데이터 초기화, 검증 등의 기능을 갖고있음.
+if
+s1 = StudentCreate("name":"철수","score":100)
+하면 BaseModel은 클래스에 적합한 자료형인지 확인하고 검증된 값을 객체의 속성에 저장
+다른 코드들을 통해 추가하고 나면 기존 값은 초기화되어 사라지는 게 아니라 그대로 유지
+새로운 학생 객체를 만들면 그 객체에 새로운 값이 저장.
+

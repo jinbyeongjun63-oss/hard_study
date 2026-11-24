@@ -15,6 +15,11 @@ class StudentCreate(BaseModel):
     name: str
     score: int
 
+class StudentUpdate(BaseModel):
+    #이름이나 점수를 입력하지 않아도 오류가 발생하지 않음 
+    name: str | None = None   #  |None    :None도 받을 수 있음
+    score: int | None = None  #  =None    :값을 전달하지 않으면 기본값은 None
+
 #get → HTTP의 GET 요청을 처리
 #"/" → 요청할 URL 경로
 #해당 경로로 GET 요청이 들어오면 아래 함수를 실행하도록 등록
@@ -61,10 +66,51 @@ def get_student(student_id:int): # :int는 학생 id가 정수여야 한다는 �
 #클라이언트가 보낸 json 데이터를 studentcreate 모델에 맞게 검증하고 python 객체로 만듦
 def create_student(student: StudentCreate):
     new_student = {
-        "id": len(students)+1,
+        "id": max((s["id"] for s in students),default=0)+1,
         "name": student.name,
         "score": student.score
     }
     students.append(new_student)
 
     return new_student
+
+
+#11.24 수정하기. put(all) patch(want part)
+@app.put("/students/{student_id}")
+def update_student(student_id:int,data:StudentCreate):
+    #data: 어떤 내용을 수정할 것인가.
+    for student in students:
+        if (student["id"] == student_id):
+            student["name"] = data.name
+            student["score"] = data.score
+
+            return student
+    #422 에러는 studentcreate를 만족시키지 못했을 때 나온다.
+    #404 에러는 찾는 값이 없을 때.
+    raise HTTPException(
+        status_code= 404
+    )
+
+@app.patch("/students/{student_id}")
+def patch_student(student_id:int,data:StudentUpdate):
+    for student in students:
+        if (student["id"] == student_id):
+
+            if data.name is not None:
+                student["name"] = data.name 
+
+            if data.score is not None:
+                student["score"] = data.score
+
+@app.delete("/students/{student_id}")
+def delete_student(student_id: int):
+    for student in students:
+        if (student["id"]==student_id):
+            students.remove(student)
+
+            return {"message: 학생 삭제 완료"}
+
+    raise HTTPException(
+        status_code= 404,
+        detail="그런 학생 없다 임마"
+    )
