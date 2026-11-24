@@ -5,10 +5,22 @@ git add .
 git commit -m "Update study"
 git push
 
+
+swagger ui
+http://127.0.0.1:8000/docs?utm_source=chatgpt.com
+
+서버 실행
+cd C:\Users\telev\OneDrive\Desktop\backend\hard_study
+python -m uvicorn main:app --reload
 hard_study파일까지 들어가서 실행.
 cd hard_study
 python -m uvicorn main:app --reload
 
+
+################ fastAPI와 MySQL 연결방법###################(하나씩)
+cd C:\Users\telev\OneDrive\Desktop\backend\hard_study
+$env:MYSQL_PASSWORD = Read-Host -MaskInput "MySQL password"
+python -m uvicorn main:app --reload
 
 새로운 repository 만든 후 코드 업데이트 등록할 때.
 1. VS Code에서 ⌘ + Shift + P 누르기
