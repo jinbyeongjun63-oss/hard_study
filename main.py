@@ -7,6 +7,7 @@ import os
 # $env:MYSQL_PASSWORD = Read-Host -MaskInput "MySQL password"
 # 환경변수란? 운영체제의 실행 환경에 값을 저장해두고 프로그램에서 가져다 쓸 수      있도록  하는 변수.
 #웹 요청을 처리할 프로그램을 준비하는 것
+#cursor: 데베에 연결된 통로를 통해 sql을 실행하고 결과를 가져오는 작업자.
 app = FastAPI()
 
 def get_connection():
@@ -109,7 +110,7 @@ def get_students():
 def get_students(student_id:int):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-
+    #조회 결과를 dictionary로 받고싶어서  dictionary=True 붙임.
     cursor.execute(
         "select * from students where id = %s",(student_id,)
         # %s 쓰는 이유: 값을 sql문자열과 분리해서 전달하면 sql injection보안문제예방
@@ -167,32 +168,55 @@ def create_student(student: StudentCreate):
 
 
 
-
-
-
-
-
-
-
-
+############## sql 연결 전
 #11.24 수정하기. put(all) patch(want part)
+# @app.put("/students/{student_id}")
+# def update_student(student_id:int,data:StudentCreate):
+#     #data: 어떤 내용을 수정할 것인가.
+#     for student in students:
+#         if (student["id"] == student_id):
+#             student["name"] = data.name
+#             student["score"] = data.score
+
+#             return student
+        
+#     #422 에러는 studentcreate를 만족시키지 못했을 때 나온다.
+#     #404 에러는 찾는 값이 없을 때.
+#     #500 에러는 필수 응답 데이터누락or검증에 실패
+#     raise HTTPException(
+#         status_code= 404
+#     )
+############ sql 연결 후
 @app.put("/students/{student_id}")
 def update_student(student_id:int,data:StudentCreate):
-    #data: 어떤 내용을 수정할 것인가.
-    for student in students:
-        if (student["id"] == student_id):
-            student["name"] = data.name
-            student["score"] = data.score
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-            return student
-        
-    #422 에러는 studentcreate를 만족시키지 못했을 때 나온다.
-    #404 에러는 찾는 값이 없을 때.
-    #500 에러는 필수 응답 데이터누락or검증에 실패
-    raise HTTPException(
-        status_code= 404
-    )
+    cursor.execute("select * from students where id=%s",(student_id,))
+    student = cursor.fetchone()
 
+    if student is None:
+        cursor.close()
+        conn.close()
+        raise HTTPException(
+            status_code= 404,
+            detail="그런 학생 없습니다"
+        )
+
+    cursor.execute("update students set name=%s,score=%s where id = %s",(data.name,data.score,student_id))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return{"message":"수정 완료"}
+
+
+
+
+
+    
 @app.patch("/students/{student_id}")
 def patch_student(student_id:int,data:StudentUpdate):
     for student in students:
