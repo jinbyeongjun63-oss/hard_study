@@ -1,4 +1,6 @@
 #업뎃한 코드 깃헙에 업데이트.
+#공부 시작 전 맥or윈도우에서 수정한 내용 불러오기.
+git pull
 add는 새로 생성하거나 수정하거나 삭제한 내용을 Git에 등록하는 것이야.
 git status
 git add .
@@ -9,7 +11,8 @@ git push
 swagger ui
 http://127.0.0.1:8000/docs?utm_source=chatgpt.com
 
-서버 실행
+서버 실행(환경변수 설정 명령어 추가됨!!!!! 터미널 바뀔 때 꼭 해줘야함)
+$env:MYSQL_PASSWORD = Read-Host -MaskInput "MySQL password"
 cd C:\Users\telev\OneDrive\Desktop\backend\hard_study
 python -m uvicorn main:app --reload
 hard_study파일까지 들어가서 실행.

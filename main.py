@@ -40,6 +40,7 @@ students = [
 class StudentCreate(BaseModel):
     name: str = Field(min_length=1,max_length=20)
     score: int = Field(ge=0,le=100) # 0이상, 100 이하
+    department_id: int
 
 # ctrl+shit+k: 한줄 다 지우기
 class StudentUpdate(BaseModel):
@@ -54,6 +55,7 @@ class StudentResponse(BaseModel):
     id: int
     name: str
     score: int
+    department_id: int | None
 #get → HTTP의 GET 요청을 처리
 #"/" → 요청할 URL 경로
 #해당 경로로 GET 요청이 들어오면 아래 함수를 실행하도록 등록
@@ -338,6 +340,84 @@ def db_test():
 
     return {"message": "MySQL 연결 성공"}
 
+@app.get("/students/departments")
+def get_students_departments():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT students.id,students.name,students.score,departments.department_name from students INNER join departments on students.department_id = departments.id;")
+        # 문장이 너무 길어지면 삼중 따옴표로 하면 된다. """"ㅇㅇㄻㄴㄹㅇ""""
+        find = cursor.fetchall()
+
+        return find
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/students/department")
+def get_students_by_department(department_id:int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary= True)
+
+    cursor.execute("select * from departments where id = %s",(department_id,))
+
+    department = cursor.fetchone()
+
+    if (department_id is None):
+        raise HTTPException(
+            status_code=404,
+            detail="그런 과 없습니다"
+        )
+    
+    try:
+        cursor.execute("""SELECT students.id,students.name,students.score,departments.department_name 
+        from students 
+        INNER join departments 
+        on students.department_id = departments.id
+        where departments.id = %s""",(department_id,))
+
+        find = cursor.fetchall()
+        #해당 과 사람이 없으면 빈 리스트 출력.200 출력.
+        return {"students": find}
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/students/count")
+def get_student_count():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""SELECT departments.department_name, count(students.id) as student_count
+                        from departments
+                        left join students
+                        on departments.id = students.department_id
+                        GROUP BY departments.id;""")
+    # count(student.id)로 한 이유. null값은 세지 않기 위해서. 
+    # count(*)하면 null값도 하나의 행으로 계산.
+    # group by는 특정 컬럼의 값이 같은 행끼리 논리적으로 묶어주는 역할.
+    # 그렇게 묶인 대상으로 count,sum,avg 같은 집계함수 사용.
+        find = cursor.fetchall()
+
+        return {"departments":find}
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
+
+
+
+
+
+
 
 @app.get("/students")
 def get_student(min_score:int=0, max_score:int =100):
@@ -393,15 +473,27 @@ def post_student(data:StudentCreate):
     conn = get_connection()
     cursor = conn.cursor()
 
+
+    
     try:
-        cursor.execute("insert into students(name,score) values (%s,%s)"
-                    ,(data.name,data.score))
+        cursor.execute("select * from departments where id = %s",(data.department_id,))
+
+        find = cursor.fetchone()
+
+        if (find is None):
+            raise HTTPException(
+                status_code=400,
+                detail="그런 학과 없습니다"
+            )
+        cursor.execute("insert into students(name,score,department_id) values (%s,%s,%s)"
+                    ,(data.name,data.score,data.department_id))
 
         conn.commit()
         new_student = {
             "id": cursor.lastrowid,
             "name": data.name,
-            "score": data.score
+            "score": data.score,
+            "department_id": data.department_id
         }
         return new_student
     
@@ -426,11 +518,25 @@ def put_student(student_id:int,data: StudentCreate): #data에 요청으로 전�
                 status_code= 404,
                 detail="그런 학생 없다"
             )
+        
+        cursor.execute("select * from departments where id = %s",(data.department_id,))
 
-        cursor.execute("update students set name=%s,score=%s where id = %s" \
-                        ,(data.name,data.score,student_id))
+        department = cursor.fetchone()
+
+        if ( department is None):
+            raise HTTPException(
+                status_code= 400,
+                detail="그런 학과 없다"
+            )
+
+        cursor.execute("update students set name=%s,score=%s,department_id=%s where id = %s" \
+                        ,(data.name,data.score,data.department_id, student_id))
         conn.commit()
-        return {"message":"success"}
+        return {"id":student_id,
+                "name":data.name,
+                "score":data.score,
+                "department_id":data.department_id
+                }
 
     finally:
         cursor.close()
@@ -489,3 +595,5 @@ def delete_student(student_id:int):
     finally:
         cursor.close()
         conn.close()
+
+
