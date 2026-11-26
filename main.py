@@ -339,7 +339,26 @@ def db_test():
     return {"message": "MySQL 연결 성공"}
 
 
-
+@app.get("/students")
+def get_student(min_score:int=0, max_score:int =100):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    if (min_score> max_score):
+        raise HTTPException(
+            status_code=404,
+            detail="min>max"
+        )
+    try:
+        cursor.execute("select * from students where score>=%s and score<=%s",
+                       (min_score,max_score))
+        
+        result = cursor.fetchall()
+        
+        return {"message":result}
+    finally:
+        cursor.close()
+        conn.close()
 
 
 
@@ -355,8 +374,6 @@ def get_student(student_id:int):
         student = cursor.fetchone()
 
         if (student is None):
-            cursor.close()
-            conn.close()
             raise HTTPException(
                 status_code= 404,
                 detail="그런 학생 없습니다"
